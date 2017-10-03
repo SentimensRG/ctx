@@ -5,7 +5,7 @@ Composable utilities for Go contexts.
 ## Installation
 
 ```bash
-go get -u github.com/SentimensRG/ctxutil
+go get -u github.com/SentimensRG/ctx
 ```
 
 ## Features
@@ -25,7 +25,7 @@ graceful application shutdown.
 ```go
 import (
     "log"
-    "github.com/SentimensRG/ctxutil/sigctx"
+    "github.com/SentimensRG/ctx/sigctx"
 )
 
 func main() {
@@ -51,7 +51,7 @@ held and cancels this context when the refcount reaches zero.
 ```go
 package main
 
-import "github.com/SentimensRG/ctxutil/refctx"
+import "github.com/SentimensRG/ctx/refctx"
 
 func main() {
     ctx, ctr := refctx.WithRefCount(context.Background())
@@ -77,8 +77,8 @@ example using `github.com/gorilla/websocket`.
 import (
     "time"
 
-    "github.com/SentimensRG/ctxutil/refctx"
-    "github.com/SentimensRG/ctxutil/sigctx"
+    "github.com/SentimensRG/ctx/refctx"
+    "github.com/SentimensRG/ctx/sigctx"
 
     "github.com/gorilla/websocket"
 )
