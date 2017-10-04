@@ -16,7 +16,7 @@ func (r *RefCtr) Ref() { atomic.AddInt32(&r.refcnt, 1) }
 
 // Free decrements the refcount
 func (r *RefCtr) Free() {
-	if v := atomic.AddInt32(&r.refcnt, -1); v > 0 {
+	if v := atomic.AddInt32(&r.refcnt, -1); v <= 0 {
 		r.cancel()
 	}
 }
