@@ -11,11 +11,14 @@ type RefCtr struct {
 	refcnt int32
 }
 
-// Ref increments the refcount
-func (r *RefCtr) Ref() { atomic.AddInt32(&r.refcnt, 1) }
+// Incr increments the refcount
+func (r *RefCtr) Incr() { r.Add(1) }
 
-// Free decrements the refcount
-func (r *RefCtr) Free() {
+// Add i refcounts
+func (r *RefCtr) Add(i int32) { atomic.AddInt32(&r.refcnt, i) }
+
+// Decr decrements the refcount
+func (r *RefCtr) Decr() {
 	if v := atomic.AddInt32(&r.refcnt, -1); v <= 0 {
 		r.cancel()
 	}
