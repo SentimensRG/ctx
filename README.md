@@ -58,8 +58,8 @@ func main() {
 
     for i := 0; i < 5; i++ {
         go func() {
-            ctr.Ref()
-            defer ctr.Free()
+            ctr.Incr()
+            defer ctr.Decr()
 
             time.Sleep(time.Second * i)
         }()
@@ -93,7 +93,7 @@ func main() {
     conn := openWebsocketConnection()
 
     ctx, ctr := refctx.WithRefCount(sigctx.New())
-    rc.Ref()  // start with one refcount
+    rc.Incr()  // start with one refcount
 
     go func() {
         for range time.NewTicker(heartbeatInterval).C {
@@ -108,14 +108,14 @@ func main() {
 
 				go func() {
 					<-time.After(pongDeadline)
-					rc.Free()
+					rc.Decr()
 				}()
             }
         }
     }
 
     conn.SetPongHandler(func(_ string) (_ error) {
-		rc.Ref()
+		rc.Incr()
 		return
 	})
 
