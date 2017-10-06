@@ -104,11 +104,11 @@ func main() {
                 return
             default:
                 deadline := time.Now().Add(pingDeadline)
-				_ = conn.WriteControl(websocket.PingMessage, nil, deadline)
+		_ = conn.WriteControl(websocket.PingMessage, nil, deadline)
 
 				go func() {
 					<-time.After(pongDeadline)
-					rc.Decr()
+					rc.Free()
 				}()
             }
         }
