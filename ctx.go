@@ -19,3 +19,9 @@ func Tick(c context.Context) <-chan struct{} {
 	}()
 	return cq
 }
+
+// Defer guarantees that a function will be called after a context has cancelled
+func Defer(c context.Context, cb func()) {
+	<-c.Done()
+	cb()
+}
