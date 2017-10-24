@@ -10,6 +10,22 @@ go get -u github.com/SentimensRG/ctx
 
 ## Features
 
+### Ctx
+
+#### General context / done-channel utilities
+
+The `ctx` package provides utilites for working with data structures satisfying
+the `ctx.Doner` interface, most notably `context.Context`:
+
+```go
+type Doner interface {
+    Done() <-chan struct{}
+}
+```
+
+The functions in `ctx` are appropriate for operations that do not preserve the
+values in a context, e.g.: joining several contexts together.
+
 ### SigCtx
 
 #### Go contexts for graceful shutdown
