@@ -2,6 +2,8 @@
 
 Composable utilities for Go contexts.
 
+[![GoDoc](https://godoc.org/github.com/SentimensRG/ctx?status.svg)](https://godoc.org/github.com/SentimensRG/ctx)
+
 ## Installation
 
 ```bash
