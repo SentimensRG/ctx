@@ -1,8 +1,10 @@
 package ctx
 
+import "sync"
+
 var heartbeat = struct{}{}
 
-// Doner can be done
+// Doner can block until something is done
 type Doner interface {
 	Done() <-chan struct{}
 }
@@ -29,4 +31,20 @@ func Defer(d Doner, cb func()) {
 		<-d.Done()
 		cb()
 	}()
+}
+
+// Join returns a channel that receives when all constituent Doners have fired
+func Join(doners ...Doner) <-chan struct{} {
+	var wg sync.WaitGroup
+	wg.Add(len(doners))
+	for _, d := range doners {
+		Defer(d, wg.Done)
+	}
+
+	cq := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(cq)
+	}()
+	return cq
 }
