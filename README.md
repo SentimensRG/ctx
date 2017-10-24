@@ -108,7 +108,7 @@ func main() {
 
     conn := openWebsocketConnection()
 
-    ctx, ctr := refctx.WithRefCount(sigctx.New())
+    ctx, ctr := refctx.WithRefCount(sigctx.New())  // good place for sigctx
     rc.Incr()  // start with one refcount
 
     go func() {
@@ -121,10 +121,9 @@ func main() {
             default:
                 deadline := time.Now().Add(pingDeadline)
 		_ = conn.WriteControl(websocket.PingMessage, nil, deadline)
-
 				go func() {
 					<-time.After(pongDeadline)
-					rc.Free()
+					rc.Decr()
 				}()
             }
         }
