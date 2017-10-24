@@ -1,16 +1,19 @@
 package ctx
 
-import "context"
-
 var heartbeat = struct{}{}
 
+// Doner can be done
+type Doner interface {
+	Done() <-chan struct{}
+}
+
 // Tick returns a <-chan whose range ends when the underlying context cancels
-func Tick(c context.Context) <-chan struct{} {
+func Tick(d Doner) <-chan struct{} {
 	cq := make(chan struct{})
 	go func() {
 		for {
 			select {
-			case <-c.Done():
+			case <-d.Done():
 				close(cq)
 				return
 			case cq <- heartbeat:
@@ -21,9 +24,9 @@ func Tick(c context.Context) <-chan struct{} {
 }
 
 // Defer guarantees that a function will be called after a context has cancelled
-func Defer(c context.Context, cb func()) {
+func Defer(d Doner, cb func()) {
 	go func() {
-		<-c.Done()
+		<-d.Done()
 		cb()
 	}()
 }
