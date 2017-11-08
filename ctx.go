@@ -48,3 +48,10 @@ func Join(doners ...Doner) <-chan struct{} {
 	}()
 	return cq
 }
+
+// FTick calls a function in a loop until the Doner has fired
+func FTick(d Doner, f func()) {
+	for _ = range Tick(d) {
+		f()
+	}
+}
