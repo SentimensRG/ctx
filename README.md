@@ -75,8 +75,8 @@ func main() {
     ctx, ctr := refctx.WithRefCount(context.Background())
 
     for i := 0; i < 5; i++ {
+        ctr.Incr()
         go func() {
-            ctr.Incr()
             defer ctr.Decr()
 
             time.Sleep(time.Second * i)
