@@ -2,7 +2,7 @@
 
 Composable utilities for Go contexts.
 
-[![GoDoc](https://godoc.org/github.com/SentimensRG/ctx?status.svg)](https://godoc.org/github.com/SentimensRG/ctx)
+[![Godoc Reference](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat-square)](https://godoc.org/github.com/SentimensRG/ctx)
 
 ## Installation
 
