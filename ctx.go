@@ -2,12 +2,17 @@ package ctx
 
 import "sync"
 
-var heartbeat = struct{}{}
-
 // Doner can block until something is done
 type Doner interface {
 	Done() <-chan struct{}
 }
+
+type doneChan <-chan struct{}
+
+func (dc doneChan) Done() <-chan struct{} { return dc }
+
+// Lift takes a chan and wraps it in a Doner
+func Lift(c <-chan struct{}) Doner { return doneChan(c) }
 
 // Tick returns a <-chan whose range ends when the underlying context cancels
 func Tick(d Doner) <-chan struct{} {
@@ -18,7 +23,7 @@ func Tick(d Doner) <-chan struct{} {
 			case <-d.Done():
 				close(cq)
 				return
-			case cq <- heartbeat:
+			case cq <- struct{}{}:
 			}
 		}
 	}()
@@ -31,6 +36,20 @@ func Defer(d Doner, cb func()) {
 		<-d.Done()
 		cb()
 	}()
+}
+
+// Link ties the lifetime of the Doners to each other.  Link returns a channel
+// that fires if ANY of the constituent Doners have fired.
+func Link(doners ...Doner) <-chan struct{} {
+	c := make(chan struct{})
+	cancel := func() { close(c) }
+
+	var once sync.Once
+	for _, d := range doners {
+		Defer(d, func() { once.Do(cancel) })
+	}
+
+	return c
 }
 
 // Join returns a channel that receives when all constituent Doners have fired
