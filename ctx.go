@@ -1,6 +1,10 @@
 package ctx
 
-import "sync"
+import (
+	"context"
+	"sync"
+	"time"
+)
 
 // Doner can block until something is done
 type Doner interface {
@@ -13,6 +17,13 @@ func (dc doneChan) Done() <-chan struct{} { return dc }
 
 // Lift takes a chan and wraps it in a Doner
 func Lift(c <-chan struct{}) Doner { return doneChan(c) }
+
+// AsContext creates a context that fires when the Doner fires
+func AsContext(d Doner) context.Context {
+	c, cancel := context.WithCancel(context.Background())
+	Defer(d, cancel)
+	return c
+}
 
 // Tick returns a <-chan whose range ends when the underlying context cancels
 func Tick(d Doner) <-chan struct{} {
@@ -72,5 +83,18 @@ func Join(doners ...Doner) <-chan struct{} {
 func FTick(d Doner, f func()) {
 	for _ = range Tick(d) {
 		f()
+	}
+}
+
+// FTimerTick calls a function repeatedly at a given internval, until the Doner
+// has fired.
+func FTimerTick(d Doner, t time.Duration, f func()) {
+	for _ = range time.NewTicker(t).C {
+		select {
+		case <-d.Done():
+			return
+		default:
+			f()
+		}
 	}
 }
