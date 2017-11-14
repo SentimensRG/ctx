@@ -25,6 +25,13 @@ func AsContext(d Doner) context.Context {
 	return c
 }
 
+// WithCancel returns a new Doner that can be cancelled via the associated
+// function
+func WithCancel(d Doner) (Doner, func()) {
+	cq := make(chan struct{})
+	return Lift(cq), func() { close(cq) }
+}
+
 // Tick returns a <-chan whose range ends when the underlying context cancels
 func Tick(d Doner) <-chan struct{} {
 	cq := make(chan struct{})
@@ -86,9 +93,9 @@ func FTick(d Doner, f func()) {
 	}
 }
 
-// FTimerTick calls a function repeatedly at a given internval, until the Doner
+// FTickInterval calls a function repeatedly at a given internval, until the Doner
 // has fired.
-func FTimerTick(d Doner, t time.Duration, f func()) {
+func FTickInterval(d Doner, t time.Duration, f func()) {
 	for _ = range time.NewTicker(t).C {
 		select {
 		case <-d.Done():
