@@ -11,12 +11,14 @@ type Doner interface {
 	Done() <-chan struct{}
 }
 
-type doneChan <-chan struct{}
+// DoneChan is a basic implementation of Doner
+type DoneChan <-chan struct{}
 
-func (dc doneChan) Done() <-chan struct{} { return dc }
+// Done returns a channel that receives when an action is complete
+func (dc DoneChan) Done() <-chan struct{} { return dc }
 
 // Lift takes a chan and wraps it in a Doner
-func Lift(c <-chan struct{}) Doner { return doneChan(c) }
+func Lift(c <-chan struct{}) Doner { return DoneChan(c) }
 
 // AsContext creates a context that fires when the Doner fires
 func AsContext(d Doner) context.Context {
