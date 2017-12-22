@@ -59,7 +59,7 @@ func Defer(d Doner, cb func()) {
 }
 
 // Link returns a channel that fires if ANY of the constituent Doners have fired
-func Link(doners ...Doner) <-chan struct{} {
+func Link(doners ...Doner) DoneChan {
 	c := make(chan struct{})
 	cancel := func() { close(c) }
 
@@ -72,7 +72,7 @@ func Link(doners ...Doner) <-chan struct{} {
 }
 
 // Join returns a channel that receives when all constituent Doners have fired
-func Join(doners ...Doner) <-chan struct{} {
+func Join(doners ...Doner) DoneChan {
 	var wg sync.WaitGroup
 	wg.Add(len(doners))
 	for _, d := range doners {
