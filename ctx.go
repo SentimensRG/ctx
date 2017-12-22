@@ -56,8 +56,7 @@ func Defer(d Doner, cb func()) {
 	}()
 }
 
-// Link ties the lifetime of the Doners to each other.  Link returns a channel
-// that fires if ANY of the constituent Doners have fired.
+// Link returns a channel that fires if ANY of the constituent Doners have fired
 func Link(doners ...Doner) <-chan struct{} {
 	c := make(chan struct{})
 	cancel := func() { close(c) }
