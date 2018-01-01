@@ -18,13 +18,23 @@ type DoneChan <-chan struct{}
 func (dc DoneChan) Done() <-chan struct{} { return dc }
 
 // Lift takes a chan and wraps it in a Doner
-func Lift(c <-chan struct{}) Doner { return DoneChan(c) }
+func Lift(c <-chan struct{}) DoneChan { return DoneChan(c) }
 
 // AsContext creates a context that fires when the Doner fires
 func AsContext(d Doner) context.Context {
 	c, cancel := context.WithCancel(context.Background())
 	Defer(d, cancel)
 	return c
+}
+
+// After time time has elapsed, the Doner fires
+func After(d time.Duration) DoneChan {
+	ch := make(chan struct{})
+	go func() {
+		<-time.After(d)
+		close(ch)
+	}()
+	return ch
 }
 
 // WithCancel returns a new Doner that can be cancelled via the associated
@@ -97,12 +107,7 @@ func FTick(d Doner, f func()) {
 // FTickInterval calls a function repeatedly at a given internval, until the Doner
 // has fired.
 func FTickInterval(d Doner, t time.Duration, f func()) {
-	for _ = range time.NewTicker(t).C {
-		select {
-		case <-d.Done():
-			return
-		default:
-			f()
-		}
-	}
+	timer := time.AfterFunc(t, f)
+	<-d.Done()
+	timer.Stop()
 }
