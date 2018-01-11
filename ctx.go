@@ -37,11 +37,23 @@ func After(d time.Duration) DoneChan {
 	return ch
 }
 
+type idempotentCloser struct {
+	called bool
+	ch     chan struct{}
+}
+
+func (f *idempotentCloser) Close() {
+	if !f.called {
+		close(f.ch)
+		f.called = true
+	}
+}
+
 // WithCancel returns a new Doner that can be cancelled via the associated
 // function
 func WithCancel(d Doner) (Doner, func()) {
 	cq := make(chan struct{})
-	return Lift(cq), func() { close(cq) }
+	return Lift(cq), (&idempotentCloser{ch: cq}).Close
 }
 
 // Tick returns a <-chan whose range ends when the underlying context cancels
