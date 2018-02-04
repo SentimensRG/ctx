@@ -129,7 +129,7 @@ func main() {
 				}()
             }
         }
-    }
+    }()
 
     conn.SetPongHandler(func(_ string) (_ error) {
 		rc.Incr()
