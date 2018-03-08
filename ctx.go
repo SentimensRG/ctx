@@ -6,6 +6,20 @@ import (
 	"time"
 )
 
+// Binder is the interface that wraps the basic Bind method.
+// Bind executes logic until the Doner completes.  Implementations of Bind must
+// not return until the Doner has completed.
+type Binder interface {
+	Bind(Doner)
+}
+
+// BindFunc is an adapter to allow the use of ordinary functions as Binders.
+type BindFunc func(Doner)
+
+// Bind executes logic until the Doner completes.  It satisfies the Binder
+// interface.
+func (f BindFunc) Bind(d Doner) { f(d) }
+
 // Doner can block until something is done
 type Doner interface {
 	Done() <-chan struct{}
