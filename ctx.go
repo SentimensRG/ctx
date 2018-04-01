@@ -53,7 +53,7 @@ func After(d time.Duration) DoneChan {
 
 // WithCancel returns a new Doner that can be cancelled via the associated
 // function
-func WithCancel(d Doner) (Doner, func()) {
+func WithCancel(d Doner) (DoneChan, func()) {
 	var closer sync.Once
 	cq := make(chan struct{})
 	cancel := func() { closer.Do(func() { close(cq) }) }
