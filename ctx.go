@@ -54,7 +54,7 @@ func WithCancel(d Doner) (C, func()) {
 	var closer sync.Once
 	cq := make(chan struct{})
 	cancel := func() { closer.Do(func() { close(cq) }) }
-	return Link(d, Lift(cq)), cancel
+	return Link(d, C(cq)), cancel
 }
 
 // Tick returns a <-chan whose range ends when the underlying context cancels
