@@ -124,3 +124,13 @@ func FTickInterval(d Doner, t time.Duration, f func()) {
 	<-d.Done()
 	timer.Stop()
 }
+
+// FDone returns a doner that fires when the function returns or panics
+func FDone(f func()) C {
+	ch := make(chan struct{})
+	go func() {
+		defer close(ch)
+		f()
+	}()
+	return ch
+}
