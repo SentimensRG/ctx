@@ -25,14 +25,11 @@ type Doner interface {
 	Done() <-chan struct{}
 }
 
-// DoneChan is a basic implementation of Doner
-type DoneChan <-chan struct{}
+// C is a basic implementation of Doner
+type C <-chan struct{}
 
 // Done returns a channel that receives when an action is complete
-func (dc DoneChan) Done() <-chan struct{} { return dc }
-
-// Lift takes a chan and wraps it in a Doner
-func Lift(c <-chan struct{}) DoneChan { return DoneChan(c) }
+func (dc C) Done() <-chan struct{} { return dc }
 
 // AsContext creates a context that fires when the Doner fires
 func AsContext(d Doner) context.Context {
@@ -42,7 +39,7 @@ func AsContext(d Doner) context.Context {
 }
 
 // After time time has elapsed, the Doner fires
-func After(d time.Duration) DoneChan {
+func After(d time.Duration) C {
 	ch := make(chan struct{})
 	go func() {
 		<-time.After(d)
@@ -53,7 +50,7 @@ func After(d time.Duration) DoneChan {
 
 // WithCancel returns a new Doner that can be cancelled via the associated
 // function
-func WithCancel(d Doner) (DoneChan, func()) {
+func WithCancel(d Doner) (C, func()) {
 	var closer sync.Once
 	cq := make(chan struct{})
 	cancel := func() { closer.Do(func() { close(cq) }) }
@@ -85,7 +82,7 @@ func Defer(d Doner, cb func()) {
 }
 
 // Link returns a channel that fires if ANY of the constituent Doners have fired
-func Link(doners ...Doner) DoneChan {
+func Link(doners ...Doner) C {
 	c := make(chan struct{})
 	cancel := func() { close(c) }
 
@@ -98,7 +95,7 @@ func Link(doners ...Doner) DoneChan {
 }
 
 // Join returns a channel that receives when all constituent Doners have fired
-func Join(doners ...Doner) DoneChan {
+func Join(doners ...Doner) C {
 	var wg sync.WaitGroup
 	wg.Add(len(doners))
 	for _, d := range doners {
