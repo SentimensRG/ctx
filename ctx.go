@@ -118,11 +118,18 @@ func FTick(d Doner, f func()) {
 }
 
 // FTickInterval calls a function repeatedly at a given internval, until the Doner
-// has fired.
+// has fired.  Note that FTickInterval ignores the time spent executing a function,
+// and instead guarantees an interval of `t` between of return of the previous
+// function call and the invocation of the next function call.
 func FTickInterval(d Doner, t time.Duration, f func()) {
-	timer := time.AfterFunc(t, f)
-	<-d.Done()
-	timer.Stop()
+	for {
+		select {
+		case <-d.Done():
+			return
+		case <-time.After(t):
+			panic("NOT IMPLEMENTED"s)
+		}
+	}
 }
 
 // FDone returns a doner that fires when the function returns or panics
