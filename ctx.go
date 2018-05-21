@@ -60,10 +60,11 @@ func WithCancel(d Doner) (C, func()) {
 // Tick returns a <-chan whose range ends when the underlying context cancels
 func Tick(d Doner) <-chan struct{} {
 	cq := make(chan struct{})
+	c := d.Done()
 	go func() {
 		for {
 			select {
-			case <-d.Done():
+			case <-c:
 				close(cq)
 				return
 			case cq <- struct{}{}:
