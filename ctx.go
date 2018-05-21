@@ -22,14 +22,14 @@ func (f BindFunc) Bind(d Doner) { f(d) }
 
 // Doner can block until something is done
 type Doner interface {
-	Done() C
+	Done() <-chan struct{}
 }
 
 // C is a basic implementation of Doner
 type C <-chan struct{}
 
 // Done returns a channel that receives when an action is complete
-func (dc C) Done() C { return dc }
+func (dc C) Done() <-chan struct{} { return dc }
 
 // AsContext creates a context that fires when the Doner fires
 func AsContext(d Doner) context.Context {
