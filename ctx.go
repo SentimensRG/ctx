@@ -29,7 +29,7 @@ type Doner interface {
 type C <-chan struct{}
 
 // Done returns a channel that receives when an action is complete
-func (dc C) Done() <-chan struct{} { return dc }
+func (dc C) Done() C { return dc }
 
 // AsContext creates a context that fires when the Doner fires
 func AsContext(d Doner) context.Context {
