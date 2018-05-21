@@ -22,7 +22,7 @@ func (f BindFunc) Bind(d Doner) { f(d) }
 
 // Doner can block until something is done
 type Doner interface {
-	Done() <-chan struct{}
+	Done() C
 }
 
 // C is a basic implementation of Doner
@@ -127,7 +127,7 @@ func FTickInterval(d Doner, t time.Duration, f func()) {
 		case <-d.Done():
 			return
 		case <-time.After(t):
-			panic("NOT IMPLEMENTED"s)
+			f()
 		}
 	}
 }
