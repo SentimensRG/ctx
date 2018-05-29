@@ -31,11 +31,33 @@ type C <-chan struct{}
 // Done returns a channel that receives when an action is complete
 func (dc C) Done() <-chan struct{} { return dc }
 
+type ctx struct {
+	Doner
+}
+
+// Deadline returns the time when work done on behalf of this context
+// should be canceled. Deadline returns ok==false when no deadline is
+// set. Successive calls to Deadline return the same results.
+func (ctx) Deadline() (deadline time.Time, ok bool) {
+	return
+}
+
+func (c ctx) Err() error {
+	select {
+	case <-c.Done():
+		return context.Canceled
+	default:
+		return nil
+	}
+}
+
+func (c ctx) Value(interface{}) (v interface{}) {
+	return
+}
+
 // AsContext creates a context that fires when the Doner fires
 func AsContext(d Doner) context.Context {
-	c, cancel := context.WithCancel(context.Background())
-	Defer(d, cancel)
-	return c
+	return ctx{d}
 }
 
 // After time time has elapsed, the Doner fires
@@ -53,24 +75,38 @@ func After(d time.Duration) C {
 func WithCancel(d Doner) (C, func()) {
 	var closer sync.Once
 	cq := make(chan struct{})
-	return Link(d, C(cq)), func() { closer.Do(func() { close(cq) }) }
+	cancel := func() { closer.Do(func() { close(cq) }) }
+
+	go func() {
+		select {
+		case <-cq:
+		case <-d.Done():
+			cancel()
+		}
+	}()
+
+	return cq, cancel
 }
 
 // Tick returns a <-chan whose range ends when the underlying context cancels
 func Tick(d Doner) <-chan struct{} {
-	cq := make(chan struct{})
-	c := d.Done()
+	c := make(chan struct{})
+	cq := d.Done()
 	go func() {
 		for {
 			select {
-			case <-c:
-				close(cq)
+			case <-cq:
+				close(c)
 				return
-			case cq <- struct{}{}:
+			default:
+				select {
+				case c <- struct{}{}:
+				case <-cq:
+				}
 			}
 		}
 	}()
-	return cq
+	return c
 }
 
 // Defer guarantees that a function will be called after a context has cancelled
