@@ -39,7 +39,8 @@ graceful application shutdown.
 
 #### Usage
 
-`sigctx.New` returns a plain-old `context.Context`.
+`sigctx.New` returns a `ctx.C`, which implements the ubiquitous `ctx.Doner`
+interface.  It fires when either SIGINT or SIGTERM is caught.
 
 ```go
 import (
@@ -51,8 +52,45 @@ func main() {
     ctx := sigctx.New()  // returns a regular context.Context
 
     <-ctx.Done()  // will unblock on SIGINT and SIGTERM
-    log.Println("exiting.")    
+    log.Println("exiting.")
 }
+```
+
+`sigctx.Tick` can be used to react to streams of signals.  For example, you can
+implement a graceful shutdown attempt, followed by a forced shutdown.
+
+```go
+import (
+    "log"
+    "github.com/SentimensRG/ctx/sigctx"
+    "github.com/SentimensRG/ctx"
+)
+
+func main() {
+    t := sigctx.Tick()
+    d, cancel := ctx.WithCancel(ctx.C(make(chan struct{})))
+
+    go func() {
+        defer cancel()
+
+        go func() {
+            // business logic goes here
+        }()
+
+        <-t
+        log.Println("attempting graceful shutdown - press Ctrl + c again to force quit")
+        go func() {
+            defer cancel()
+            // cleanup logic goes here
+        }()
+
+        <-t
+        log.Println("forcing close")
+    }()
+
+    <-d.Done()
+}
+
 ```
 
 ### RefCtx
@@ -84,7 +122,7 @@ func main() {
         }()
     }
 
-    <-ctx.Done()  // fires when refcount falls back to zero    
+    <-ctx.Done()  // fires when refcount falls back to zero
 }
 
 ```
@@ -123,19 +161,19 @@ func main() {
                 return
             default:
                 deadline := time.Now().Add(pingDeadline)
-		_ = conn.WriteControl(websocket.PingMessage, nil, deadline)
-				go func() {
-					<-time.After(pongDeadline)
-					rc.Decr()
-				}()
+                _ = conn.WriteControl(websocket.PingMessage, nil, deadline)
+                go func() {
+                    <-time.After(pongDeadline)
+                    rc.Decr()
+                }()
             }
         }
     }()
 
     conn.SetPongHandler(func(_ string) (_ error) {
-		rc.Incr()
-		return
-	})
+        rc.Incr()
+        return
+    })
 
     businessLogic(c, conn)
     <-c.Done()
@@ -150,6 +188,7 @@ Seriously, even if you just used it in your weekend project, I'd like to hear
 about it :)
 
 ## License
+
 The MIT License
 
 Copyright (c) 2017 Sentimens Research Group, LLC
