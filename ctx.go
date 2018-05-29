@@ -90,19 +90,23 @@ func WithCancel(d Doner) (C, func()) {
 
 // Tick returns a <-chan whose range ends when the underlying context cancels
 func Tick(d Doner) <-chan struct{} {
-	cq := make(chan struct{})
-	c := d.Done()
+	c := make(chan struct{})
+	cq := d.Done()
 	go func() {
 		for {
 			select {
-			case <-c:
-				close(cq)
+			case <-cq:
+				close(c)
 				return
-			case cq <- struct{}{}:
+			default:
+				select {
+				case c <- struct{}{}:
+				case <-cq:
+				}
 			}
 		}
 	}()
-	return cq
+	return c
 }
 
 // Defer guarantees that a function will be called after a context has cancelled
