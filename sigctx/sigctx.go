@@ -1,7 +1,6 @@
 package sigctx
 
 import (
-	"context"
 	"os"
 	"os/signal"
 	"sync"
@@ -35,10 +34,4 @@ func New() ctx.C {
 	})
 
 	return c
-}
-
-// NewContext calls New and wraps the result in a context.Context.  The result
-// is a context that fires when either SIGINT or SIGTERM is caught.
-func NewContext() context.Context {
-	return ctx.AsContext(New())
 }
