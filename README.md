@@ -37,8 +37,6 @@ The `sigctx` package provides a context that terminates when it receives a
 SIGINT or SIGTERM.  This provides a convenient mechanism for triggering
 graceful application shutdown.
 
-#### Usage
-
 `sigctx.New` returns a `ctx.C`, which implements the ubiquitous `ctx.Doner`
 interface.  It fires when either SIGINT or SIGTERM is caught.
 
@@ -68,7 +66,7 @@ import (
 
 func main() {
     t := sigctx.Tick()
-    d, cancel := ctx.WithCancel(ctx.C(make(chan struct{})))
+    d, cancel := ctx.WithCancel(ctx.Background())
 
     go func() {
         defer cancel()
@@ -100,8 +98,6 @@ func main() {
 The `refctx` package provides a context whose lifetime is bound to a `RefCtr`
 instance.  The `RefCtr` keeps track of how many references to a context are
 held and cancels this context when the refcount reaches zero.
-
-#### Usage
 
 `refctx` works similarly to `sync.WaitGroup`.
 
