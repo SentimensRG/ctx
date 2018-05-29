@@ -24,7 +24,7 @@ func (r *RefCtr) Add(i uint32) {
 }
 
 // Decr decrements the refcount
-func (r *RefCtr) Decr() { atomic.AddUint32(&r.refcnt, ^uint32(0)) }
+func (r *RefCtr) Decr() { r.Add(^uint32(0)) }
 
 // WithRefCount derives a ctx.C that will be cancelled when all references are
 // freed
