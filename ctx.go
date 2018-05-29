@@ -75,7 +75,17 @@ func After(d time.Duration) C {
 func WithCancel(d Doner) (C, func()) {
 	var closer sync.Once
 	cq := make(chan struct{})
-	return Link(d, C(cq)), func() { closer.Do(func() { close(cq) }) }
+	cancel := func() { closer.Do(func() { close(cq) }) }
+
+	go func() {
+		select {
+		case <-cq:
+		case <-d.Done():
+			cancel()
+		}
+	}()
+
+	return cq, cancel
 }
 
 // Tick returns a <-chan whose range ends when the underlying context cancels
