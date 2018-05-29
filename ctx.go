@@ -31,11 +31,33 @@ type C <-chan struct{}
 // Done returns a channel that receives when an action is complete
 func (dc C) Done() <-chan struct{} { return dc }
 
+type ctx struct {
+	Doner
+}
+
+// Deadline returns the time when work done on behalf of this context
+// should be canceled. Deadline returns ok==false when no deadline is
+// set. Successive calls to Deadline return the same results.
+func (ctx) Deadline() (deadline time.Time, ok bool) {
+	return
+}
+
+func (c ctx) Err() error {
+	select {
+	case <-c.Done():
+		return context.Canceled
+	default:
+		return nil
+	}
+}
+
+func (c ctx) Value(interface{}) (v interface{}) {
+	return
+}
+
 // AsContext creates a context that fires when the Doner fires
 func AsContext(d Doner) context.Context {
-	c, cancel := context.WithCancel(context.Background())
-	Defer(d, cancel)
-	return c
+	return ctx{d}
 }
 
 // After time time has elapsed, the Doner fires
