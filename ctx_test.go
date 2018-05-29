@@ -120,7 +120,8 @@ func TestWithCancel(t *testing.T) {
 
 	t.Run("CloseUnderlyingDoner", func(t *testing.T) {
 		ch := make(chan struct{})
-		d, _ := WithCancel(C(ch))
+		d, cancel := WithCancel(C(ch))
+		defer cancel() // should not panic
 
 		close(ch)
 
