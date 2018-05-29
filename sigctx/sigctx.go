@@ -10,23 +10,28 @@ import (
 )
 
 var (
-	c    ctx.C
-	once sync.Once
+	c              ctx.C
+	sigCh          chan os.Signal
+	initC, initSig sync.Once
 )
+
+func initSigCh() {
+	sigCh = make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+}
 
 // New signal-bound ctx.C that terminates when either SIGINT or SIGTERM
 // is caught.
 func New() ctx.C {
-	once.Do(func() {
+	initC.Do(func() {
+		initSig.Do(initSigCh)
+
 		dc := make(chan struct{})
 		c = dc
 
-		ch := make(chan os.Signal, 1)
-		signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
-
 		go func() {
 			select {
-			case <-ch:
+			case <-sigCh:
 				close(dc)
 			case <-c.Done():
 			}
@@ -34,4 +39,20 @@ func New() ctx.C {
 	})
 
 	return c
+}
+
+// Tick returns a channel that recvs each time a either SIGINT or SIGTERM are
+// caught.
+func Tick() <-chan struct{} {
+	initSig.Do(initSigCh)
+
+	dc := make(chan struct{})
+	go func() {
+		for {
+			<-sigCh
+			dc <- struct{}{}
+		}
+	}()
+
+	return dc
 }
