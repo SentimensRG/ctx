@@ -68,7 +68,7 @@ import (
 
 func main() {
     t := sigctx.Tick()
-    d, cancel := ctx.WithCancel(ctx.C(make(chan struct{})))
+    d, cancel := ctx.WithCancel(ctx.Background())
 
     go func() {
         defer cancel()
