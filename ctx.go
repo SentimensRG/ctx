@@ -28,6 +28,11 @@ type Doner interface {
 // C is a basic implementation of Doner
 type C <-chan struct{}
 
+// Background is the ctx analog to context.Background().  It never fires.
+func Background() C {
+	return nil
+}
+
 // Done returns a channel that receives when an action is complete
 func (dc C) Done() <-chan struct{} { return dc }
 
