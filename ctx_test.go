@@ -126,7 +126,7 @@ func TestWithCancel(t *testing.T) {
 
 		select {
 		case <-d.Done():
-		default:
+		case <-time.After(time.Millisecond):
 			t.Error("not cancelled")
 		}
 	})
