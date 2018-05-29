@@ -13,12 +13,12 @@ func TestBindFunc(t *testing.T) {
 	assert.Panic(t, func() { f.Bind(nil) }, "called")
 }
 
-func TestDoneChan(t *testing.T) {
+func TestC(t *testing.T) {
 	ch := make(chan struct{})
 	close(ch)
 
 	select {
-	case <-DoneChan(ch).Done():
+	case <-C(ch).Done():
 	default:
 		t.Error("doner did not reflect closed state of channel")
 	}
@@ -29,7 +29,7 @@ func TestDefer(t *testing.T) {
 	close(ch)
 
 	chT := make(chan struct{})
-	Defer(Lift(ch), func() { close(chT) })
+	Defer(C(ch), func() { close(chT) })
 
 	select {
 	case <-chT:
@@ -43,7 +43,7 @@ func TestLink(t *testing.T) {
 	close(ch)
 
 	select {
-	case <-Link(Lift(ch), Lift(nil)):
+	case <-Link(C(ch), C(nil)):
 	case <-time.After(time.Millisecond * 100):
 		t.Error("link did not fire despite a Doner having fired")
 	}
@@ -55,7 +55,7 @@ func TestJoin(t *testing.T) {
 
 	c, cancel := context.WithCancel(context.Background())
 
-	d := Join(Lift(ch), c)
+	d := Join(C(ch), c)
 
 	select {
 	case <-d.Done():
