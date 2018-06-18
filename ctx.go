@@ -153,7 +153,7 @@ func Join(doners ...Doner) C {
 
 // FTick calls a function in a loop until the Doner has fired
 func FTick(d Doner, f func()) {
-	for _ = range Tick(d) {
+	for range Tick(d) {
 		f()
 	}
 }
