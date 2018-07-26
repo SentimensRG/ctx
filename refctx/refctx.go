@@ -1,3 +1,4 @@
+// Package refctx provides a context tied to a reference-counter.
 package refctx
 
 import (
