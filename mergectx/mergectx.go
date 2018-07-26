@@ -25,10 +25,10 @@ type cx struct {
 // Err() returns error from first done parent context.
 //
 // Value(key) looks for key in parent contexts. First found is returned.
-func Merge(c0, c1 context.Context) (context.Context, context.CancelFunc) {
+func Merge(c0, c1 context.Context) context.Context {
 	c := &cx{c0: c0, c1: c1, cq: make(chan struct{})}
 	go c.merge()
-	return c, c.cancel
+	return c
 }
 
 func (c *cx) Deadline() (deadline time.Time, ok bool) {
@@ -79,16 +79,5 @@ func (c *cx) merge() {
 	}
 	c.err = dc.Err()
 	c.Unlock()
-	close(c.cq)
-}
-
-func (c *cx) cancel() {
-	c.Lock()
-	defer c.Unlock()
-
-	if c.err == nil {
-		c.err = context.Canceled
-	}
-
 	close(c.cq)
 }
