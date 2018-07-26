@@ -1,3 +1,5 @@
+// Package sigctx provides a context that expires when a SIGINT or SIGTERM is
+// received.
 package sigctx
 
 import (
