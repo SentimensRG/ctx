@@ -29,7 +29,7 @@ values in a context, e.g.: joining several contexts together.
 
 - [sigctx](https://github.com/SentimensRG/ctx/tree/master/sigctx): contexts for graceful shutdown
 - [refctx](https://github.com/SentimensRG/ctx/tree/master/refctx): contexts linked to a reference-counter
-- [mergectx](https://github.com/SentimensRG/ctx/tree/master/mergectx): utilities for merging full-fledged `context.Context`s
+- [mergectx](https://github.com/SentimensRG/ctx/tree/master/mergectx): utilities for merging `context.Context` instances while preserving values, errors and deadlines.
 
 ## RFC
 
