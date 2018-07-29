@@ -3,6 +3,7 @@ package mergectx
 import (
 	"context"
 	"runtime"
+	"sync"
 	"testing"
 	"time"
 )
@@ -65,60 +66,60 @@ func TestDeadlineEmpty(t *testing.T) {
 	}
 }
 
-// func TestDeadlineSecondEmpty(t *testing.T) {
-// 	ctx1, cancel1 := context.WithDeadline(context.Background(), time.Date(2086, time.January, 0, 0, 0, 0, 0, time.UTC))
-// 	defer cancel1()
-// 	ctx2 := context.Background()
+func TestDeadlineSecondEmpty(t *testing.T) {
+	ctx1, cancel1 := context.WithDeadline(context.Background(), time.Date(2086, time.January, 0, 0, 0, 0, 0, time.UTC))
+	defer cancel1()
+	ctx2 := context.Background()
 
-// 	ctx := Link(ctx1, ctx2)
+	ctx := Link(ctx1, ctx2)
 
-// 	d, ok := ctx.Deadline()
-// 	if !ok {
-// 		t.Fatal("context has no deadline")
-// 	}
+	d, ok := ctx.Deadline()
+	if !ok {
+		t.Fatal("context has no deadline")
+	}
 
-// 	d1, _ := ctx1.Deadline()
-// 	if d != d1 {
-// 		t.Fatalf("unexpected deadline %v, expected %v", d, d1)
-// 	}
-// }
+	d1, _ := ctx1.Deadline()
+	if d != d1 {
+		t.Fatalf("unexpected deadline %v, expected %v", d, d1)
+	}
+}
 
-// func TestDeadlineFirstEmpty(t *testing.T) {
-// 	ctx1 := context.Background()
-// 	ctx2, cancel2 := context.WithDeadline(context.Background(), time.Date(2086, time.January, 0, 0, 0, 0, 0, time.UTC))
-// 	defer cancel2()
+func TestDeadlineFirstEmpty(t *testing.T) {
+	ctx1 := context.Background()
+	ctx2, cancel2 := context.WithDeadline(context.Background(), time.Date(2086, time.January, 0, 0, 0, 0, 0, time.UTC))
+	defer cancel2()
 
-// 	ctx := Link(ctx1, ctx2)
+	ctx := Link(ctx1, ctx2)
 
-// 	d, ok := ctx.Deadline()
-// 	if !ok {
-// 		t.Fatal("context has no deadline")
-// 	}
+	d, ok := ctx.Deadline()
+	if !ok {
+		t.Fatal("context has no deadline")
+	}
 
-// 	d2, _ := ctx2.Deadline()
-// 	if d != d2 {
-// 		t.Fatalf("unexpected deadline %v, expected %v", d, d2)
-// 	}
-// }
+	d2, _ := ctx2.Deadline()
+	if d != d2 {
+		t.Fatalf("unexpected deadline %v, expected %v", d, d2)
+	}
+}
 
-// func TestDeadlineFirstEarly(t *testing.T) {
-// 	ctx1, cancel1 := context.WithDeadline(context.Background(), time.Date(2085, time.January, 0, 0, 0, 0, 0, time.UTC))
-// 	defer cancel1()
-// 	ctx2, cancel2 := context.WithDeadline(context.Background(), time.Date(2086, time.January, 0, 0, 0, 0, 0, time.UTC))
-// 	defer cancel2()
+func TestDeadlineFirstEarly(t *testing.T) {
+	ctx1, cancel1 := context.WithDeadline(context.Background(), time.Date(2085, time.January, 0, 0, 0, 0, 0, time.UTC))
+	defer cancel1()
+	ctx2, cancel2 := context.WithDeadline(context.Background(), time.Date(2086, time.January, 0, 0, 0, 0, 0, time.UTC))
+	defer cancel2()
 
-// 	ctx := Link(ctx1, ctx2)
+	ctx := Link(ctx1, ctx2)
 
-// 	d, ok := ctx.Deadline()
-// 	if !ok {
-// 		t.Fatal("context has no deadline")
-// 	}
+	d, ok := ctx.Deadline()
+	if !ok {
+		t.Fatal("context has no deadline")
+	}
 
-// 	d1, _ := ctx1.Deadline()
-// 	if d != d1 {
-// 		t.Fatalf("unexpected deadline %v, expected %v", d, d1)
-// 	}
-// }
+	d1, _ := ctx1.Deadline()
+	if d != d1 {
+		t.Fatalf("unexpected deadline %v, expected %v", d, d1)
+	}
+}
 
 func TestDeadlineSecondEarly(t *testing.T) {
 	ctx1, cancel1 := context.WithDeadline(context.Background(), time.Date(2086, time.January, 0, 0, 0, 0, 0, time.UTC))
@@ -197,66 +198,66 @@ func TestCancel(t *testing.T) {
 	}
 }
 
-// func TestConcurrency(t *testing.T) {
-// 	ctx1, cancel1 := context.WithCancel(context.Background())
-// 	defer cancel1()
-// 	ctx2, cancel2 := context.WithCancel(context.Background())
-// 	defer cancel2()
+func TestConcurrency(t *testing.T) {
+	ctx1, cancel1 := context.WithCancel(context.Background())
+	defer cancel1()
+	ctx2, cancel2 := context.WithCancel(context.Background())
+	defer cancel2()
 
-// 	ctx := Link(ctx1, ctx2)
+	ctx := Link(ctx1, ctx2)
 
-// 	child, childCancel := context.WithCancel(ctx)
-// 	defer childCancel()
+	child, childCancel := context.WithCancel(ctx)
+	defer childCancel()
 
-// 	spawn := make(chan struct{})
-// 	var wg sync.WaitGroup
+	spawn := make(chan struct{})
+	var wg sync.WaitGroup
 
-// 	for i := 0; i < 64; i++ {
-// 		wg.Add(5)
-// 		go func() {
-// 			defer wg.Done()
-// 			<-spawn
-// 			<-ctx.Done()
-// 		}()
-// 		go func() {
-// 			defer wg.Done()
-// 			<-spawn
-// 			<-child.Done()
-// 		}()
-// 		go func() {
-// 			defer wg.Done()
-// 			<-spawn
-// 			cancel1()
-// 		}()
-// 		go func() {
-// 			defer wg.Done()
-// 			<-spawn
-// 			cancel2()
-// 		}()
-// 	}
-// 	close(spawn)
+	for i := 0; i < 64; i++ {
+		wg.Add(4)
+		go func() {
+			defer wg.Done()
+			<-spawn
+			<-ctx.Done()
+		}()
+		go func() {
+			defer wg.Done()
+			<-spawn
+			<-child.Done()
+		}()
+		go func() {
+			defer wg.Done()
+			<-spawn
+			cancel1()
+		}()
+		go func() {
+			defer wg.Done()
+			<-spawn
+			cancel2()
+		}()
+	}
+	close(spawn)
 
-// 	done := make(chan struct{})
-// 	go func() {
-// 		wg.Wait()
-// 		close(done)
-// 	}()
-// 	select {
-// 	case <-done:
-// 	case <-time.After(10 * time.Second):
-// 		t.Fatal("concurrency test failed with timeout")
-// 	}
-// }
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(10 * time.Second):
+		t.Fatal("concurrency test failed with timeout")
+	}
+}
 
 func TestGoroutineLeak(t *testing.T) {
 	origNum := runtime.NumGoroutine()
-	ctx1, cancel1 := context.WithCancel(context.Background())
-	defer cancel1()
+	ctx1, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	ctx2 := context.Background()
 
 	ctx := Link(ctx1, ctx2)
 
-	cancel1()
+	cancel()
 
 	select {
 	case <-ctx.Done():
@@ -268,8 +269,7 @@ func TestGoroutineLeak(t *testing.T) {
 	}
 	time.Sleep(500 * time.Millisecond)
 
-	// run GC, so it won't spawn accident goroutines
-	runtime.GC()
+	runtime.GC() // run GC, so it won't spawn accidental goroutines
 
 	newNum := runtime.NumGoroutine()
 
