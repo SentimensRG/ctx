@@ -8,17 +8,17 @@ import (
 )
 
 func TestCancelFirst(t *testing.T) {
-	ctx1, cancel1 := context.WithCancel(context.Background())
-	defer cancel1()
+	ctx1, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	ctx2 := context.Background()
 
-	ctx := Merge(ctx1, ctx2)
+	ctx := Link(ctx1, ctx2)
 	select {
 	case <-ctx.Done():
 		t.Fatal("context cancelled")
 	default:
 	}
-	cancel1()
+	cancel()
 
 	select {
 	case <-ctx.Done():
@@ -32,16 +32,16 @@ func TestCancelFirst(t *testing.T) {
 
 func TestCancelSecond(t *testing.T) {
 	ctx1 := context.Background()
-	ctx2, cancel2 := context.WithCancel(context.Background())
-	defer cancel2()
+	ctx2, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	ctx := Merge(ctx1, ctx2)
+	ctx := Link(ctx1, ctx2)
 	select {
 	case <-ctx.Done():
 		t.Fatal("context cancelled")
 	default:
 	}
-	cancel2()
+	cancel()
 
 	select {
 	case <-ctx.Done():
@@ -57,7 +57,7 @@ func TestDeadlineEmpty(t *testing.T) {
 	ctx1 := context.Background()
 	ctx2 := context.Background()
 
-	ctx := Merge(ctx1, ctx2)
+	ctx := Link(ctx1, ctx2)
 
 	_, ok := ctx.Deadline()
 	if ok {
@@ -70,7 +70,7 @@ func TestDeadlineEmpty(t *testing.T) {
 // 	defer cancel1()
 // 	ctx2 := context.Background()
 
-// 	ctx := Merge(ctx1, ctx2)
+// 	ctx := Link(ctx1, ctx2)
 
 // 	d, ok := ctx.Deadline()
 // 	if !ok {
@@ -88,7 +88,7 @@ func TestDeadlineEmpty(t *testing.T) {
 // 	ctx2, cancel2 := context.WithDeadline(context.Background(), time.Date(2086, time.January, 0, 0, 0, 0, 0, time.UTC))
 // 	defer cancel2()
 
-// 	ctx := Merge(ctx1, ctx2)
+// 	ctx := Link(ctx1, ctx2)
 
 // 	d, ok := ctx.Deadline()
 // 	if !ok {
@@ -107,7 +107,7 @@ func TestDeadlineEmpty(t *testing.T) {
 // 	ctx2, cancel2 := context.WithDeadline(context.Background(), time.Date(2086, time.January, 0, 0, 0, 0, 0, time.UTC))
 // 	defer cancel2()
 
-// 	ctx := Merge(ctx1, ctx2)
+// 	ctx := Link(ctx1, ctx2)
 
 // 	d, ok := ctx.Deadline()
 // 	if !ok {
@@ -126,7 +126,7 @@ func TestDeadlineSecondEarly(t *testing.T) {
 	ctx2, cancel2 := context.WithDeadline(context.Background(), time.Date(2085, time.January, 0, 0, 0, 0, 0, time.UTC))
 	defer cancel2()
 
-	ctx := Merge(ctx1, ctx2)
+	ctx := Link(ctx1, ctx2)
 
 	d, ok := ctx.Deadline()
 	if !ok {
@@ -144,7 +144,7 @@ func TestTimeoutFirst(t *testing.T) {
 	defer cancel1()
 	ctx2 := context.Background()
 
-	ctx := Merge(ctx1, ctx2)
+	ctx := Link(ctx1, ctx2)
 
 	select {
 	case <-ctx.Done():
@@ -161,7 +161,7 @@ func TestTimeoutSecond(t *testing.T) {
 	ctx2, cancel2 := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel2()
 
-	ctx := Merge(ctx1, ctx2)
+	ctx := Link(ctx1, ctx2)
 
 	select {
 	case <-ctx.Done():
@@ -177,7 +177,7 @@ func TestCancel(t *testing.T) {
 	ctx1 := context.Background()
 	ctx2 := context.Background()
 
-	ctx, cancel := context.WithCancel(Merge(ctx1, ctx2))
+	ctx, cancel := context.WithCancel(Link(ctx1, ctx2))
 
 	select {
 	case <-ctx.Done():
@@ -203,7 +203,7 @@ func TestCancel(t *testing.T) {
 // 	ctx2, cancel2 := context.WithCancel(context.Background())
 // 	defer cancel2()
 
-// 	ctx := Merge(ctx1, ctx2)
+// 	ctx := Link(ctx1, ctx2)
 
 // 	child, childCancel := context.WithCancel(ctx)
 // 	defer childCancel()
@@ -254,7 +254,7 @@ func TestGoroutineLeak(t *testing.T) {
 	defer cancel1()
 	ctx2 := context.Background()
 
-	ctx := Merge(ctx1, ctx2)
+	ctx := Link(ctx1, ctx2)
 
 	cancel1()
 

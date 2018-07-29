@@ -16,7 +16,12 @@ type cx struct {
 	err    error
 }
 
-// Merge returns new context which is the child of child of two parents.
+func newCtx(c0, c1 context.Context) *cx {
+	return &cx{c0: c0, c1: c1, cq: make(chan struct{})}
+}
+
+// Link returns new context which is the child of child of two parents.  It is
+// analogous to ctx.Link
 //
 // Done() channel is closed when one of parents contexts is done.
 //
@@ -25,9 +30,9 @@ type cx struct {
 // Err() returns error from first done parent context.
 //
 // Value(key) looks for key in parent contexts. First found is returned.
-func Merge(c0, c1 context.Context) context.Context {
-	c := &cx{c0: c0, c1: c1, cq: make(chan struct{})}
-	go c.merge()
+func Link(c0, c1 context.Context) context.Context {
+	c := newCtx(c0, c1)
+	go c.link()
 	return c
 }
 
@@ -61,7 +66,7 @@ func (c *cx) Value(key interface{}) (v interface{}) {
 	return
 }
 
-func (c *cx) merge() {
+func (c *cx) link() {
 	var dc context.Context
 	select {
 	case <-c.c0.Done():
