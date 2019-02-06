@@ -125,11 +125,14 @@ func Defer(d Doner, cb func()) {
 // Link returns a channel that fires if ANY of the constituent Doners have fired
 func Link(doners ...Doner) C {
 	c := make(chan struct{})
-	cancel := func() { close(c) }
-
-	var once sync.Once
 	for _, d := range doners {
-		Defer(d, func() { once.Do(cancel) })
+		Defer(d, func() {
+			select {
+			case <-c:
+			default:
+				close(c)
+			}
+		})
 	}
 
 	return c
